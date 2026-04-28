@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: wedding-app
+    env: static
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_SUPABASE_URL
+        value: https://mexeegqwlewmrsejdvlw.supabase.co
+      - key: VITE_SUPABASE_ANON_KEY
+        value: sb_publishable_DSfOh1b64Rv6fX_J703Xzw_INxl1eMx
+      - key: VITE_CLOUDINARY_CLOUD_NAME
+        value: demo
+      - key: VITE_CLOUDINARY_UPLOAD_PRESET
+        value: wedding_app
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

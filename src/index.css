@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply border-gray-200;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream font-sans antialiased;
+}
+
+/* Custom color classes */
+.status-confirmed {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-declined {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-undecided {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.status-tbd {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+/* Wedding function colors */
+.fn-f1 {
+  @apply bg-f1-brown/10 text-f1-brown;
+}
+
+.fn-f2 {
+  @apply bg-f2-blue/10 text-f2-blue;
+}
+
+.fn-f3 {
+  @apply bg-f3-purple/10 text-f3-purple;
+}
+
+.fn-f4 {
+  @apply bg-f4-green/10 text-f4-green;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    @apply hidden;
+  }
+
+  body {
+    @apply bg-white;
+  }
+}
