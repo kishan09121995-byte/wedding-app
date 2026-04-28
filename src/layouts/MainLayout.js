@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
-import { LayoutDashboard, Users, UtensilsCrossed, Building2, Hotel, DollarSign, Calendar, Image, Share2, Menu, X, LogOut, Heart, Store, } from 'lucide-react';
+import { LayoutDashboard, Users, UtensilsCrossed, Building2, Hotel, DollarSign, Calendar, Image, Share2, Menu, X, LogOut, Heart, Store, Shield, UserCog, } from 'lucide-react';
 import Dashboard from '../pages/Dashboard';
 import MasterRSVP from '../pages/MasterRSVP';
 import PlateCount from '../pages/PlateCount';
@@ -14,6 +14,8 @@ import Timeline from '../pages/Timeline';
 import PhotoGallery from '../pages/PhotoGallery';
 import SocialHub from '../pages/SocialHub';
 import VendorTracker from '../pages/VendorTracker';
+import AdminPanel from '../pages/AdminPanel';
+import UserManagement from '../pages/UserManagement';
 const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'rsvp', label: 'Master RSVP', icon: Users },
@@ -26,6 +28,8 @@ const navItems = [
     { id: 'photos', label: 'Photos', icon: Image },
     { id: 'social', label: 'Social Hub', icon: Share2 },
     { id: 'vendors', label: 'Vendors', icon: Store },
+    { id: 'users', label: 'Users', icon: UserCog },
+    { id: 'admin', label: 'Admin', icon: Shield },
 ];
 export default function MainLayout() {
     const [currentPage, setCurrentPage] = useState('dashboard');
@@ -59,6 +63,10 @@ export default function MainLayout() {
                 return _jsx(SocialHub, {});
             case 'vendors':
                 return _jsx(VendorTracker, {});
+            case 'users':
+                return _jsx(UserManagement, {});
+            case 'admin':
+                return _jsx(AdminPanel, {});
             default:
                 return _jsx(Dashboard, {});
         }

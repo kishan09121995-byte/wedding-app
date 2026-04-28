@@ -15,7 +15,7 @@ export default function GuestTable({
   onDelete,
   onUpdateField,
 }: GuestTableProps) {
-  const [sortBy, setSortBy] = useState<'name' | 'side' | 'pax'>('name')
+  const [sortBy, setSortBy] = useState<'name' | 'side' | 'pax_total'>('name')
   const [sortDesc, setSortDesc] = useState(false)
 
   const sortedGuests = [...guests].sort((a, b) => {
@@ -95,7 +95,7 @@ export default function GuestTable({
               <th className="px-4 py-3 text-center font-semibold text-gray-700 cursor-pointer hover:bg-mauve/10"
                 onClick={() => {
                   if (sortBy === 'pax_total') setSortDesc(!sortDesc)
-                  setSortBy('pax_total' as any)
+                  setSortBy('pax_total')
                 }}>
                 <div className="flex items-center justify-center gap-1">
                   Pax <ChevronDown className={`w-4 h-4 ${sortBy === 'pax_total' && sortDesc ? 'rotate-180' : ''}`} />

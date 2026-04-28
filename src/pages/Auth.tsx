@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Heart, Mail, Lock, AlertCircle } from 'lucide-react'
 
 export default function Auth() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,9 +17,12 @@ export default function Auth() {
     setLoading(true)
 
     try {
+      // Convert simple username to full email format
+      const authEmail = email.includes('@') ? email : `${email}@weddingapp.test`
+
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: authEmail,
           password,
           options: {
             data: { role: 'couple' },
@@ -30,7 +35,7 @@ export default function Auth() {
         setError('Check your email to confirm signup!')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: authEmail,
           password,
         })
         if (error) throw error
@@ -74,15 +79,15 @@ export default function Auth() {
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+                Username or Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="kishan@example.com"
+                  placeholder="kishan"
                   required
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent outline-none"
                 />
@@ -115,22 +120,35 @@ export default function Auth() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-600 mt-6">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp)
-                setError('')
-              }}
-              className="text-rose-gold hover:text-rose-gold/80 font-medium"
-            >
-              {isSignUp ? 'Sign In' : 'Sign Up'}
-            </button>
-          </p>
+          <div className="space-y-4 mt-6">
+            <p className="text-center text-sm text-gray-600">
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                onClick={() => {
+                  setIsSignUp(!isSignUp)
+                  setError('')
+                }}
+                className="text-rose-gold hover:text-rose-gold/80 font-medium"
+              >
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </button>
+            </p>
+            {!isSignUp && (
+              <p className="text-center text-sm text-gray-600">
+                Need to change password?{' '}
+                <button
+                  onClick={() => navigate('/reset-password')}
+                  className="text-rose-gold hover:text-rose-gold/80 font-medium"
+                >
+                  Reset Password
+                </button>
+              </p>
+            )}
+          </div>
         </div>
 
         <p className="text-center text-xs text-gray-500 mt-6">
-          Demo: Use email with any password to sign up, then sign in
+          {isSignUp ? 'Sign up with any username (e.g., admin, test), then use Admin panel to create all accounts' : 'Login with username (e.g., kishan, megha, photographer) + password test123@'}
         </p>
       </div>
     </div>

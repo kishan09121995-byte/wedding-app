@@ -7,6 +7,9 @@ import { useGuestStore } from './store/guestStore';
 import Auth from './pages/Auth';
 import MainLayout from './layouts/MainLayout';
 import RSVPPortal from './pages/RSVPPortal';
+import PasswordReset from './pages/PasswordReset';
+import AdminPanel from './pages/AdminPanel';
+import SetupWizard from './pages/SetupWizard';
 import { Loader } from 'lucide-react';
 function AppContent() {
     const { user, loading, setUser, setLoading } = useAuthStore();
@@ -30,7 +33,7 @@ function AppContent() {
         };
         checkSession();
         // Subscribe to auth changes
-        const { data: { subscription }, } = supabase.auth.onAuthStateChanged((_, session) => {
+        const { data: { subscription }, } = supabase.auth.onAuthStateChange((_, session) => {
             setUser(session?.user || null);
         });
         return () => subscription?.unsubscribe();
@@ -77,6 +80,6 @@ function AppContent() {
     return _jsx(MainLayout, {});
 }
 function App() {
-    return (_jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/rsvp/:token", element: _jsx(RSVPPortal, {}) }), _jsx(Route, { path: "/*", element: _jsx(AppContent, {}) })] }) }));
+    return (_jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/rsvp/:token", element: _jsx(RSVPPortal, {}) }), _jsx(Route, { path: "/reset-password", element: _jsx(PasswordReset, {}) }), _jsx(Route, { path: "/setup", element: _jsx(SetupWizard, {}) }), _jsx(Route, { path: "/admin", element: _jsx(AdminPanel, {}) }), _jsx(Route, { path: "/*", element: _jsx(AppContent, {}) })] }) }));
 }
 export default App;

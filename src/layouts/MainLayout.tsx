@@ -16,6 +16,8 @@ import {
   LogOut,
   Heart,
   Store,
+  Shield,
+  UserCog,
 } from 'lucide-react'
 import Dashboard from '../pages/Dashboard'
 import MasterRSVP from '../pages/MasterRSVP'
@@ -28,8 +30,10 @@ import Timeline from '../pages/Timeline'
 import PhotoGallery from '../pages/PhotoGallery'
 import SocialHub from '../pages/SocialHub'
 import VendorTracker from '../pages/VendorTracker'
+import AdminPanel from '../pages/AdminPanel'
+import UserManagement from '../pages/UserManagement'
 
-type Page = 'dashboard' | 'rsvp' | 'plate-count' | 'hotel-settings' | 'room-booking' | 'hotel-billing' | 'budget' | 'timeline' | 'photos' | 'social' | 'vendors'
+type Page = 'dashboard' | 'rsvp' | 'plate-count' | 'hotel-settings' | 'room-booking' | 'hotel-billing' | 'budget' | 'timeline' | 'photos' | 'social' | 'vendors' | 'admin' | 'users'
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -43,6 +47,8 @@ const navItems = [
   { id: 'photos', label: 'Photos', icon: Image },
   { id: 'social', label: 'Social Hub', icon: Share2 },
   { id: 'vendors', label: 'Vendors', icon: Store },
+  { id: 'users', label: 'Users', icon: UserCog },
+  { id: 'admin', label: 'Admin', icon: Shield },
 ]
 
 export default function MainLayout() {
@@ -79,6 +85,10 @@ export default function MainLayout() {
         return <SocialHub />
       case 'vendors':
         return <VendorTracker />
+      case 'users':
+        return <UserManagement />
+      case 'admin':
+        return <AdminPanel />
       default:
         return <Dashboard />
     }

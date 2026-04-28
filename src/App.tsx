@@ -6,6 +6,9 @@ import { useGuestStore } from './store/guestStore'
 import Auth from './pages/Auth'
 import MainLayout from './layouts/MainLayout'
 import RSVPPortal from './pages/RSVPPortal'
+import PasswordReset from './pages/PasswordReset'
+import AdminPanel from './pages/AdminPanel'
+import SetupWizard from './pages/SetupWizard'
 import { Loader } from 'lucide-react'
 
 function AppContent() {
@@ -35,7 +38,7 @@ function AppContent() {
     // Subscribe to auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChanged((_, session) => {
+    } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user || null)
     })
 
@@ -105,6 +108,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/rsvp/:token" element={<RSVPPortal />} />
+        <Route path="/reset-password" element={<PasswordReset />} />
+        <Route path="/setup" element={<SetupWizard />} />
+        <Route path="/admin" element={<AdminPanel />} />
         <Route path="/*" element={<AppContent />} />
       </Routes>
     </BrowserRouter>
