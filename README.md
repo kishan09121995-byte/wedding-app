@@ -214,3 +214,4 @@ For issues or suggestions, contact kishan or megha via WhatsApp/Telegram.
 Generated with Anthropic Claude | Vite 4 | Supabase | React 18
 "# wedding-app-1" 
 "# wedding-app-1" 
+"# wedding-app-1" 
