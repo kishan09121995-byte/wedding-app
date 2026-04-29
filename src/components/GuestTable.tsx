@@ -7,6 +7,8 @@ interface GuestTableProps {
   onEdit: (guest: Guest) => void
   onDelete: (id: string) => void
   onUpdateField: (id: string, field: string, value: any) => void
+  canEdit?: (guest: Guest) => boolean
+  canDelete?: (guest: Guest) => boolean
 }
 
 export default function GuestTable({
@@ -14,6 +16,8 @@ export default function GuestTable({
   onEdit,
   onDelete,
   onUpdateField,
+  canEdit = () => true,
+  canDelete = () => true,
 }: GuestTableProps) {
   const [sortBy, setSortBy] = useState<'name' | 'side' | 'pax_total'>('name')
   const [sortDesc, setSortDesc] = useState(false)
@@ -215,18 +219,27 @@ export default function GuestTable({
                 </td>
                 <td className="px-4 py-3 text-center">
                   <div className="flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => onEdit(guest)}
-                      className="p-1 hover:bg-blue-100 rounded text-blue-600 transition"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(guest.id)}
-                      className="p-1 hover:bg-red-100 rounded text-red-600 transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {canEdit(guest) && (
+                      <button
+                        onClick={() => onEdit(guest)}
+                        className="p-1 hover:bg-blue-100 rounded text-blue-600 transition"
+                        title="Edit guest"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    {canDelete(guest) && (
+                      <button
+                        onClick={() => onDelete(guest.id)}
+                        className="p-1 hover:bg-red-100 rounded text-red-600 transition"
+                        title="Delete guest"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    {!canEdit(guest) && !canDelete(guest) && (
+                      <span className="text-xs text-gray-400">View only</span>
+                    )}
                   </div>
                 </td>
               </tr>

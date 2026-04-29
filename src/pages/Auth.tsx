@@ -79,19 +79,20 @@ export default function Auth() {
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Username or Email
+                Username
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value.toLowerCase())}
                   placeholder="kishan"
                   required
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent outline-none"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Enter username only (e.g., kishan, megha, palak)</p>
             </div>
 
             <div>

@@ -1,0 +1,44 @@
+/* The sidebar container */
+.sidebar-menu-item {
+  padding: 12px 20px;
+  transition: background-color 0.3s ease;
+  color: #ffffff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 8px;
+  background-color: transparent;
+}
+
+/* Hover effect for unselected items */
+.sidebar-menu-item:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.1); /* Subtle white overlay */
+}
+
+/* The active/selected item */
+.sidebar-menu-item.active {
+  background-color: #ff4d6d; /* Vibrant pink/red */
+  font-weight: bold;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon styling */
+.sidebar-menu-item .menu-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Label styling */
+.sidebar-menu-item .menu-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

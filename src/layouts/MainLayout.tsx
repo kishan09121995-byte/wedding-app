@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
+import { useRole } from '../hooks/useRole'
+import GlobalChat from '../components/GlobalChat'
+import '../styles/sidebar.css'
 import {
   LayoutDashboard,
   Users,
@@ -18,6 +21,12 @@ import {
   Store,
   Shield,
   UserCog,
+  FileText,
+  CheckSquare,
+  MapPin,
+  Palette,
+  MessageSquare,
+  Bell,
 } from 'lucide-react'
 import Dashboard from '../pages/Dashboard'
 import MasterRSVP from '../pages/MasterRSVP'
@@ -30,21 +39,33 @@ import Timeline from '../pages/Timeline'
 import PhotoGallery from '../pages/PhotoGallery'
 import SocialHub from '../pages/SocialHub'
 import VendorTracker from '../pages/VendorTracker'
+import MenuManagement from '../pages/MenuManagement'
 import AdminPanel from '../pages/AdminPanel'
 import UserManagement from '../pages/UserManagement'
+import Assignments from '../pages/Assignments'
+import GuestArrivals from '../pages/GuestArrivals'
+import EventDetails from '../pages/EventDetails'
+import InternalChat from '../pages/InternalChat'
+import Notifications from '../pages/Notifications'
 
-type Page = 'dashboard' | 'rsvp' | 'plate-count' | 'hotel-settings' | 'room-booking' | 'hotel-billing' | 'budget' | 'timeline' | 'photos' | 'social' | 'vendors' | 'admin' | 'users'
+type Page = 'dashboard' | 'rsvp' | 'plate-count' | 'hotel-settings' | 'room-booking' | 'hotel-billing' | 'budget' | 'timeline' | 'photos' | 'social' | 'vendors' | 'menu' | 'admin' | 'users' | 'assignments' | 'arrivals' | 'event-details' | 'chat' | 'notifications'
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'rsvp', label: 'Master RSVP', icon: Users },
   { id: 'plate-count', label: 'Plate Count', icon: UtensilsCrossed },
+  { id: 'menu', label: 'Menu Management', icon: FileText },
   { id: 'hotel-settings', label: 'Hotel Settings', icon: Building2 },
   { id: 'room-booking', label: 'Room Booking', icon: Hotel },
   { id: 'hotel-billing', label: 'Hotel Billing', icon: DollarSign },
   { id: 'budget', label: 'Budget', icon: DollarSign },
+  { id: 'assignments', label: 'Assignments', icon: CheckSquare },
+  { id: 'arrivals', label: 'Guest Arrivals', icon: MapPin },
+  { id: 'event-details', label: 'Décor & Photos', icon: Palette },
+  { id: 'chat', label: 'Team Chat', icon: MessageSquare },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'timeline', label: 'Timeline', icon: Calendar },
-  { id: 'photos', label: 'Photos', icon: Image },
+  { id: 'photos', label: 'Photo Gallery', icon: Image },
   { id: 'social', label: 'Social Hub', icon: Share2 },
   { id: 'vendors', label: 'Vendors', icon: Store },
   { id: 'users', label: 'Users', icon: UserCog },
@@ -55,6 +76,7 @@ export default function MainLayout() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { user, setUser } = useAuthStore()
+  const { role } = useRole()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -69,6 +91,8 @@ export default function MainLayout() {
         return <MasterRSVP />
       case 'plate-count':
         return <PlateCount />
+      case 'menu':
+        return <MenuManagement />
       case 'hotel-settings':
         return <HotelSettings />
       case 'room-booking':
@@ -77,6 +101,16 @@ export default function MainLayout() {
         return <HotelBilling />
       case 'budget':
         return <Budget />
+      case 'assignments':
+        return <Assignments />
+      case 'arrivals':
+        return <GuestArrivals />
+      case 'event-details':
+        return <EventDetails />
+      case 'chat':
+        return <InternalChat />
+      case 'notifications':
+        return <Notifications />
       case 'timeline':
         return <Timeline />
       case 'photos':
@@ -123,14 +157,10 @@ export default function MainLayout() {
                   setCurrentPage(item.id as Page)
                   if (window.innerWidth < 768) setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition text-sm ${
-                  isActive
-                    ? 'bg-rose-gold text-white'
-                    : 'hover:bg-mauve/50 text-mauve/90'
-                }`}
+                className={`sidebar-menu-item ${isActive ? 'active' : ''}`}
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
+                <Icon className="menu-icon" />
+                <span className="menu-label">{item.label}</span>
               </button>
             )
           })}
@@ -184,6 +214,9 @@ export default function MainLayout() {
           <div className="p-6">{renderPage()}</div>
         </div>
       </div>
+
+      {/* Global Chat */}
+      <GlobalChat />
     </div>
   )
 }

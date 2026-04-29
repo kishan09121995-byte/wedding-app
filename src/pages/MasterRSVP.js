@@ -1,16 +1,37 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useGuestStore } from '../store/guestStore';
+import { useRole } from '../hooks/useRole';
 import GuestTable from '../components/GuestTable';
 import GuestModal from '../components/GuestModal';
-import { Plus, Download, Upload, Search, Filter } from 'lucide-react';
+import { Plus, Download, Upload, Search, Filter, Lock } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 export default function MasterRSVP() {
     const { guests, filters, setGuests, updateGuest, deleteGuest, setFilters, getFilteredGuests, } = useGuestStore();
+    const { role } = useRole();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingGuest, setEditingGuest] = useState();
     const [loading, setLoading] = useState(false);
+    const canAddGuest = role === 'bride_admin' || role === 'vendor_admin';
+    const canEditGuest = (guest) => {
+        if (role === 'vendor_admin')
+            return true;
+        if (role === 'bride_admin')
+            return guest.side === 'Bride';
+        if (role === 'groom_admin')
+            return guest.side === 'Groom';
+        return false;
+    };
+    const canDeleteGuest = (guest) => {
+        if (role === 'vendor_admin')
+            return true;
+        if (role === 'bride_admin')
+            return guest.side === 'Bride';
+        if (role === 'groom_admin')
+            return guest.side === 'Groom';
+        return false;
+    };
     // Load guests from Supabase
     useEffect(() => {
         loadGuests();
@@ -87,6 +108,10 @@ export default function MasterRSVP() {
         }
     };
     const handleAddGuest = () => {
+        if (!canAddGuest) {
+            toast.error('Only Bride admin or Vendor admin can add guests');
+            return;
+        }
         setEditingGuest(undefined);
         setIsModalOpen(true);
     };
@@ -130,6 +155,11 @@ export default function MasterRSVP() {
         }
     };
     const handleDeleteGuest = async (id) => {
+        const guest = guests.find((g) => g.id === id);
+        if (!guest || !canDeleteGuest(guest)) {
+            toast.error('You do not have permission to delete this guest');
+            return;
+        }
         if (!window.confirm('Are you sure you want to delete this guest?'))
             return;
         try {
@@ -160,7 +190,9 @@ export default function MasterRSVP() {
         }
     };
     const filteredGuests = getFilteredGuests();
-    return (_jsxs("div", { className: "space-y-6", children: [_jsx(Toaster, { position: "top-right" }), _jsx("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200", children: _jsxs("div", { className: "flex flex-col md:flex-row gap-4 items-start md:items-center justify-between", children: [_jsxs("div", { className: "flex-1", children: [_jsx("h3", { className: "text-lg font-bold text-gray-800 mb-3", children: "Master RSVP" }), _jsx("p", { className: "text-sm text-gray-600", children: "294 guests total (161 Groom + 133 Bride)" })] }), _jsxs("div", { className: "flex gap-2 flex-wrap", children: [_jsxs("button", { onClick: handleAddGuest, className: "flex items-center gap-2 bg-rose-gold hover:bg-rose-gold/90 text-white px-4 py-2 rounded-lg transition font-medium", children: [_jsx(Plus, { className: "w-4 h-4" }), "Add Guest"] }), _jsxs("button", { className: "flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition font-medium", children: [_jsx(Upload, { className: "w-4 h-4" }), "Import Excel"] }), _jsxs("button", { className: "flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition font-medium", children: [_jsx(Download, { className: "w-4 h-4" }), "Export Excel"] })] })] }) }), _jsxs("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200", children: [_jsxs("div", { className: "flex flex-col md:flex-row gap-4", children: [_jsxs("div", { className: "flex-1", children: [_jsxs("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: [_jsx(Search, { className: "w-4 h-4 inline mr-2" }), "Search by Name or City"] }), _jsx("input", { type: "text", placeholder: "Deepak Mota, Ahmedabad...", value: filters.searchTerm || '', onChange: (e) => setFilters({ ...filters, searchTerm: e.target.value }), className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent" })] }), _jsxs("div", { children: [_jsxs("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: [_jsx(Filter, { className: "w-4 h-4 inline mr-2" }), "Side"] }), _jsxs("select", { value: filters.side || '', onChange: (e) => setFilters({
+    return (_jsxs("div", { className: "space-y-6", children: [_jsx(Toaster, { position: "top-right" }), _jsx("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200", children: _jsxs("div", { className: "flex flex-col md:flex-row gap-4 items-start md:items-center justify-between", children: [_jsxs("div", { className: "flex-1", children: [_jsx("h3", { className: "text-lg font-bold text-gray-800 mb-3", children: "Master RSVP" }), _jsx("p", { className: "text-sm text-gray-600", children: "294 guests total (161 Groom + 133 Bride)" })] }), _jsxs("div", { className: "flex gap-2 flex-wrap", children: [_jsx("button", { onClick: handleAddGuest, disabled: !canAddGuest, className: `flex items-center gap-2 px-4 py-2 rounded-lg transition font-medium ${canAddGuest
+                                        ? 'bg-rose-gold hover:bg-rose-gold/90 text-white'
+                                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`, title: canAddGuest ? 'Add a new guest' : 'Only Bride or Vendor admin can add guests', children: canAddGuest ? (_jsxs(_Fragment, { children: [_jsx(Plus, { className: "w-4 h-4" }), "Add Guest"] })) : (_jsxs(_Fragment, { children: [_jsx(Lock, { className: "w-4 h-4" }), "Add Guest (Restricted)"] })) }), _jsxs("button", { className: "flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition font-medium", children: [_jsx(Upload, { className: "w-4 h-4" }), "Import Excel"] }), _jsxs("button", { className: "flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition font-medium", children: [_jsx(Download, { className: "w-4 h-4" }), "Export Excel"] })] })] }) }), _jsxs("div", { className: "bg-white rounded-lg p-6 shadow-sm border border-gray-200", children: [_jsxs("div", { className: "flex flex-col md:flex-row gap-4", children: [_jsxs("div", { className: "flex-1", children: [_jsxs("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: [_jsx(Search, { className: "w-4 h-4 inline mr-2" }), "Search by Name or City"] }), _jsx("input", { type: "text", placeholder: "Deepak Mota, Ahmedabad...", value: filters.searchTerm || '', onChange: (e) => setFilters({ ...filters, searchTerm: e.target.value }), className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent" })] }), _jsxs("div", { children: [_jsxs("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: [_jsx(Filter, { className: "w-4 h-4 inline mr-2" }), "Side"] }), _jsxs("select", { value: filters.side || '', onChange: (e) => setFilters({
                                             ...filters,
                                             side: e.target.value,
                                         }), className: "px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent", children: [_jsx("option", { value: "", children: "All Sides" }), _jsx("option", { value: "Groom", children: "Groom" }), _jsx("option", { value: "Bride", children: "Bride" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "RSVP Status" }), _jsxs("select", { value: filters.rsvp_status || '', onChange: (e) => setFilters({
@@ -169,7 +201,7 @@ export default function MasterRSVP() {
                                         }), className: "px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent", children: [_jsx("option", { value: "", children: "All Status" }), _jsx("option", { value: "Confirmed", children: "Confirmed" }), _jsx("option", { value: "Not Decided", children: "Not Decided" }), _jsx("option", { value: "Declined", children: "Declined" })] })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Hotel" }), _jsxs("select", { value: filters.hotel_id || '', onChange: (e) => setFilters({
                                             ...filters,
                                             hotel_id: e.target.value,
-                                        }), className: "px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent", children: [_jsx("option", { value: "", children: "All Hotels" }), _jsx("option", { value: "leo-resort", children: "LEO Resort" }), _jsx("option", { value: "leo-medium", children: "LEO Medium" }), _jsx("option", { value: "xyz-hotel", children: "XYZ Hotel" }), _jsx("option", { value: "indralok", children: "Indralok" })] })] }), (filters.side || filters.rsvp_status || filters.searchTerm || filters.hotel_id) && (_jsx("div", { className: "flex items-end", children: _jsx("button", { onClick: () => setFilters({}), className: "px-4 py-2 text-rose-gold hover:text-rose-gold/80 font-medium transition", children: "Clear Filters" }) }))] }), _jsxs("p", { className: "text-sm text-gray-600 mt-4", children: ["Showing ", filteredGuests.length, " of ", guests.length, " guests"] })] }), loading ? (_jsx("div", { className: "text-center py-12", children: _jsx("p", { className: "text-gray-600", children: "Loading guests..." }) })) : filteredGuests.length === 0 ? (_jsxs("div", { className: "bg-white rounded-lg p-12 text-center shadow-sm border border-gray-200", children: [_jsx("p", { className: "text-gray-600 mb-4", children: "No guests found" }), _jsx("button", { onClick: handleAddGuest, className: "text-rose-gold hover:text-rose-gold/80 font-medium", children: "Add the first guest \u2192" })] })) : (_jsx(GuestTable, { guests: filteredGuests, onEdit: handleEditGuest, onDelete: handleDeleteGuest, onUpdateField: handleUpdateField })), _jsx(GuestModal, { guest: editingGuest, isOpen: isModalOpen, onClose: () => {
+                                        }), className: "px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold focus:border-transparent", children: [_jsx("option", { value: "", children: "All Hotels" }), _jsx("option", { value: "leo-resort", children: "LEO Resort" }), _jsx("option", { value: "leo-medium", children: "LEO Medium" }), _jsx("option", { value: "xyz-hotel", children: "XYZ Hotel" }), _jsx("option", { value: "indralok", children: "Indralok" })] })] }), (filters.side || filters.rsvp_status || filters.searchTerm || filters.hotel_id) && (_jsx("div", { className: "flex items-end", children: _jsx("button", { onClick: () => setFilters({}), className: "px-4 py-2 text-rose-gold hover:text-rose-gold/80 font-medium transition", children: "Clear Filters" }) }))] }), _jsxs("p", { className: "text-sm text-gray-600 mt-4", children: ["Showing ", filteredGuests.length, " of ", guests.length, " guests"] })] }), loading ? (_jsx("div", { className: "text-center py-12", children: _jsx("p", { className: "text-gray-600", children: "Loading guests..." }) })) : filteredGuests.length === 0 ? (_jsxs("div", { className: "bg-white rounded-lg p-12 text-center shadow-sm border border-gray-200", children: [_jsx("p", { className: "text-gray-600 mb-4", children: "No guests found" }), _jsx("button", { onClick: handleAddGuest, className: "text-rose-gold hover:text-rose-gold/80 font-medium", children: "Add the first guest \u2192" })] })) : (_jsx(GuestTable, { guests: filteredGuests, onEdit: handleEditGuest, onDelete: handleDeleteGuest, onUpdateField: handleUpdateField, canEdit: canEditGuest, canDelete: canDeleteGuest })), _jsx(GuestModal, { guest: editingGuest, isOpen: isModalOpen, onClose: () => {
                     setIsModalOpen(false);
                     setEditingGuest(undefined);
                 }, onSave: handleSaveGuest })] }));

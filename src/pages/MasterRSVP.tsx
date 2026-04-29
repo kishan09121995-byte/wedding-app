@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useGuestStore, Guest } from '../store/guestStore'
+import { useRole } from '../hooks/useRole'
 import GuestTable from '../components/GuestTable'
 import GuestModal from '../components/GuestModal'
-import { Plus, Download, Upload, Search, Filter } from 'lucide-react'
+import { Plus, Download, Upload, Search, Filter, Lock } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
 
 export default function MasterRSVP() {
@@ -16,10 +17,25 @@ export default function MasterRSVP() {
     setFilters,
     getFilteredGuests,
   } = useGuestStore()
+  const { role } = useRole()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingGuest, setEditingGuest] = useState<Guest | undefined>()
   const [loading, setLoading] = useState(false)
+
+  const canAddGuest = role === 'bride_admin' || role === 'vendor_admin'
+  const canEditGuest = (guest: Guest) => {
+    if (role === 'vendor_admin') return true
+    if (role === 'bride_admin') return guest.side === 'Bride'
+    if (role === 'groom_admin') return guest.side === 'Groom'
+    return false
+  }
+  const canDeleteGuest = (guest: Guest) => {
+    if (role === 'vendor_admin') return true
+    if (role === 'bride_admin') return guest.side === 'Bride'
+    if (role === 'groom_admin') return guest.side === 'Groom'
+    return false
+  }
 
   // Load guests from Supabase
   useEffect(() => {
@@ -99,6 +115,10 @@ export default function MasterRSVP() {
   }
 
   const handleAddGuest = () => {
+    if (!canAddGuest) {
+      toast.error('Only Bride admin or Vendor admin can add guests')
+      return
+    }
     setEditingGuest(undefined)
     setIsModalOpen(true)
   }
@@ -143,6 +163,12 @@ export default function MasterRSVP() {
   }
 
   const handleDeleteGuest = async (id: string) => {
+    const guest = guests.find((g) => g.id === id)
+    if (!guest || !canDeleteGuest(guest)) {
+      toast.error('You do not have permission to delete this guest')
+      return
+    }
+
     if (!window.confirm('Are you sure you want to delete this guest?')) return
 
     try {
@@ -189,10 +215,25 @@ export default function MasterRSVP() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={handleAddGuest}
-              className="flex items-center gap-2 bg-rose-gold hover:bg-rose-gold/90 text-white px-4 py-2 rounded-lg transition font-medium"
+              disabled={!canAddGuest}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition font-medium ${
+                canAddGuest
+                  ? 'bg-rose-gold hover:bg-rose-gold/90 text-white'
+                  : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+              }`}
+              title={canAddGuest ? 'Add a new guest' : 'Only Bride or Vendor admin can add guests'}
             >
-              <Plus className="w-4 h-4" />
-              Add Guest
+              {canAddGuest ? (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Add Guest
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  Add Guest (Restricted)
+                </>
+              )}
             </button>
             <button className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition font-medium">
               <Upload className="w-4 h-4" />
@@ -330,6 +371,8 @@ export default function MasterRSVP() {
           onEdit={handleEditGuest}
           onDelete={handleDeleteGuest}
           onUpdateField={handleUpdateField}
+          canEdit={canEditGuest}
+          canDelete={canDeleteGuest}
         />
       )}
 

@@ -9,10 +9,8 @@ services:
         value: https://mexeegqwlewmrsejdvlw.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
         value: sb_publishable_DSfOh1b64Rv6fX_J703Xzw_INxl1eMx
-      - key: VITE_CLOUDINARY_CLOUD_NAME
-        value: demo
-      - key: VITE_CLOUDINARY_UPLOAD_PRESET
-        value: wedding_app
+      - key: VITE_GOOGLE_DRIVE_FOLDER_ID
+        value: 1VR9SeSoUy9_-1ylitBWOXZYtr3Z2DlYR
     routes:
       - type: rewrite
         source: /*

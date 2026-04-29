@@ -9,15 +9,18 @@
     "lint": "eslint . --ext .ts,.tsx",
     "setup": "node setup.js",
     "deploy": "node deploy.js",
-    "deploy:watch": "npm run build && node deploy.js"
+    "deploy:watch": "npm run build && node deploy.js",
+    "upload:photos": "node uploadFromGoogleDrive.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.3.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.294.0",
+    "node-fetch": "^3.3.0",
     "qrcode.react": "^1.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
