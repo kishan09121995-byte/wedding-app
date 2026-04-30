@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useGuestStore } from '../store/guestStore'
-import { Edit2, Save, X, MapPin, Users, AutomatedAnnouncement } from 'lucide-react'
+import { Edit2, Save, X, MapPin, Users, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface HotelSetting {
@@ -138,7 +138,7 @@ export default function HotelSettings() {
           disabled={autoAssigning || hotels.length === 0}
           className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
         >
-          <AutomatedAnnouncement className="w-5 h-5" />
+          <Sparkles className="w-5 h-5" />
           {autoAssigning ? 'Assigning...' : 'Auto-Assign Guests'}
         </button>
       </div>
