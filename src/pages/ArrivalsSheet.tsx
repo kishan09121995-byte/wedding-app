@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useGuestStore } from '../store/guestStore'
 import { CheckCircle2, LogIn, LogOut, Printer, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
+import '../styles/roomTags.css'
 
 interface Arrival {
   id: string
@@ -288,36 +289,84 @@ export default function ArrivalsSheet() {
         </div>
       )}
 
-      {/* Room Tags View (Print-friendly) */}
+      {/* Room Tags View (Print-friendly A6 Cards on A4) */}
       {viewMode === 'tags' && (
-        <div className="space-y-8">
+        <div className="room-tags-outer-container">
           {Object.entries(groupedByHotelAndSide).map(([key, { hotel, side, guests: sideGuests }]) => (
             <div key={key}>
-              <h3 className="text-lg font-bold mb-4 pb-2 border-b-2 border-purple-500">
-                {hotel} • {side} Side
+              <h3 className="room-tags-section-header">
+                {hotel} • {side} Side ({sideGuests.length} guests)
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {sideGuests.map(guest => (
-                  <div key={guest.id} className="border-2 border-gray-800 rounded-lg p-4 bg-white print:page-break-inside-avoid">
-                    <div className="text-center space-y-2">
-                      <div className="text-xs font-bold text-gray-600 uppercase tracking-wider">{hotel}</div>
-                      <div className="text-sm font-bold text-gray-900 truncate">{guest.name}</div>
-                      <div className="text-2xl font-black text-blue-600 py-1">#{guest.room_number || '?'}</div>
-                      <div className="text-xs text-gray-600">{side} • {guest.pax_total} pax</div>
-                      <div className="text-xs font-semibold pt-2">
-                        <span className="inline-block px-2 py-1 rounded bg-yellow-100 text-yellow-800">
-                          {(() => {
-                            const arrival = arrivals.find(a => a.guest_id === guest.id)
-                            return arrival?.status || 'Pending'
-                          })()}
-                        </span>
+              <div className="room-tags-container">
+                {sideGuests.map(guest => {
+                  const arrival = arrivals.find(a => a.guest_id === guest.id)
+                  const sideClass = side === 'Bride' ? 'bride-side' : 'groom-side'
+                  const sideBadgeClass = side === 'Bride' ? 'bride' : 'groom'
+                  const roomNumberValue = guest.room_number
+
+                  return (
+                    <div key={guest.id} className="room-tag-wrapper">
+                      <div className={`room-tag ${sideClass}`}>
+                        {/* Header */}
+                        <div className="room-tag-header">
+                          Welcome to Kishan & Megha's Wedding
+                        </div>
+
+                        {/* Guest Name */}
+                        <div className="room-tag-name">
+                          {guest.name}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="room-tag-divider" />
+
+                        {/* Room Number - Large and Prominent */}
+                        {roomNumberValue ? (
+                          <div className="room-tag-number">
+                            #{roomNumberValue}
+                          </div>
+                        ) : (
+                          <div className="room-tag-number empty">
+                            ______
+                          </div>
+                        )}
+
+                        {/* Side Badge */}
+                        <div className={`room-tag-side ${sideBadgeClass}`}>
+                          {side === 'Bride' ? "Bride's Side" : "Groom's Side"}
+                        </div>
+
+                        {/* Details: Pax and Status */}
+                        <div className="room-tag-details">
+                          <div className="room-tag-pax">
+                            {guest.pax_total} {guest.pax_total === 1 ? 'Guest' : 'Guests'}
+                          </div>
+                          {arrival && (
+                            <div className="room-tag-status">
+                              {arrival.status}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           ))}
+
+          {/* Print Instructions */}
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg print:hidden">
+            <p className="text-sm text-blue-800 font-semibold">🖨️ Print Instructions:</p>
+            <ul className="text-xs text-blue-700 mt-2 space-y-1 ml-4 list-disc">
+              <li>Ensure printer is set to <strong>A4 paper</strong></li>
+              <li>Set margins to <strong>10mm</strong> on all sides</li>
+              <li>Enable <strong>"Background graphics"</strong> to print color tints</li>
+              <li>Use a guillotine cutter or sharp scissors along the 2mm double borders</li>
+              <li>Each card is exactly 105mm × 148mm (A6 size) — 4 cards per A4 sheet</li>
+              <li>Handwrite missing room numbers on the ______ line if needed</li>
+            </ul>
+          </div>
         </div>
       )}
     </div>

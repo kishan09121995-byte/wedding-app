@@ -1,0 +1,300 @@
+/* Room Tags Print Styling */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;700&display=swap');
+
+/* Print Media Queries */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  /* Hide UI elements during print */
+  .flex.justify-between.items-start,
+  .grid.grid-cols-1.md\\:grid-cols-4,
+  .bg-white.rounded-lg.p-6.shadow-sm.border,
+  .flex.gap-3.flex-wrap,
+  button,
+  nav,
+  .sidebar,
+  header {
+    display: none !important;
+  }
+
+  /* Room tags container print styling */
+  .room-tags-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    width: 100%;
+    page-break-inside: avoid;
+  }
+
+  /* Hide section headers during print */
+  .room-tags-section-header {
+    display: none !important;
+  }
+
+  /* Ensure tags fit perfectly on A4 */
+  .room-tag-wrapper {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Full bleed without gaps for print */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Screen and Print Styles */
+.room-tags-outer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.room-tags-section-header {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #a855f7;
+  color: #111827;
+}
+
+.room-tags-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  justify-content: center;
+
+  /* A4 Print Optimization: 2x2 grid with A6 card sizing */
+  width: 100%;
+  max-width: 100%;
+}
+
+@media screen and (min-width: 640px) {
+  .room-tags-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .room-tags-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* Individual Room Tag Card */
+.room-tag-wrapper {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.room-tag {
+  /* A6 Size: 105mm x 148mm (converted to approximate pixels: 297px x 419px) */
+  /* However, for screen we'll use smaller proportional sizing */
+  width: 100%;
+  aspect-ratio: 105 / 148;
+
+  /* Borders: 2px double border for elegant cut-line */
+  border: 2px double #1f2937;
+  border-radius: 5px;
+
+  /* Padding: 24px internal spacing */
+  padding: 24px;
+
+  /* Professional background with print-color-adjust */
+  background-color: #ffffff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+
+  /* Flexbox for centering content */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+
+  /* Shadow for screen, removed for print */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  /* Typography and spacing */
+  gap: 0.5rem;
+
+  /* Print optimization */
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* Side-specific coloring */
+.room-tag.bride-side {
+  background: linear-gradient(135deg, rgba(253, 242, 248, 0.8), rgba(251, 207, 232, 0.3));
+  border-color: #ec4899;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.room-tag.groom-side {
+  background: linear-gradient(135deg, rgba(254, 252, 232, 0.8), rgba(253, 230, 138, 0.3));
+  border-color: #d97706;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Header: Welcome text */
+.room-tag-header {
+  font-family: 'Lato', system-ui, -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+/* Guest Name: Large, serif, bold */
+.room-tag-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(18px, 5vw, 26px);
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 100%;
+  margin: 4px 0;
+}
+
+/* Divider: Subtle horizontal line */
+.room-tag-divider {
+  width: 60%;
+  height: 1px;
+  background-color: #d1d5db;
+  margin: 8px auto;
+}
+
+/* Room Number: MASSIVE, sans-serif, bold */
+.room-tag-number {
+  font-family: 'Lato', system-ui, -apple-system, sans-serif;
+  font-size: clamp(36px, 12vw, 52px);
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 4px 0;
+}
+
+/* Empty room number placeholder (for handwriting) */
+.room-tag-number.empty {
+  font-size: clamp(28px, 8vw, 40px);
+  color: #9ca3af;
+  border-bottom: 2px solid #d1d5db;
+  padding-bottom: 2px;
+  letter-spacing: 0.3em;
+}
+
+/* Side Indicator Badge/Pill */
+.room-tag-side {
+  display: inline-block;
+  font-family: 'Lato', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+.room-tag-side.bride {
+  background-color: #ec4899;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.room-tag-side.groom {
+  background-color: #d97706;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Additional Details (PAX, Status) */
+.room-tag-details {
+  font-family: 'Lato', system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+  color: #4b5563;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.room-tag-pax {
+  font-weight: 600;
+}
+
+.room-tag-status {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+  background-color: #fef3c7;
+  color: #92400e;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Responsive behavior for screens */
+@media screen and (max-width: 768px) {
+  .room-tag {
+    font-size: 14px;
+  }
+
+  .room-tag-name {
+    font-size: 18px;
+  }
+
+  .room-tag-number {
+    font-size: 36px;
+  }
+}
+
+/* Print-specific adjustments for perfect A4 fit */
+@media print {
+  .room-tag {
+    /* Precise A6 sizing in millimeters */
+    width: 105mm;
+    height: 148mm;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 0;
+    box-shadow: none;
+    border-width: 2px;
+  }
+
+  .room-tags-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Ensure proper page breaks */
+  .room-tags-outer-container {
+    page-break-inside: avoid;
+  }
+
+  /* Remove gap for print perfection */
+  .room-tags-container {
+    gap: 0;
+  }
+}
