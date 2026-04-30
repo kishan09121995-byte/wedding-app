@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import { useNavigate } from 'react-router-dom'
-import { Upload, Trash2, Plus, CheckCircle, AlertCircle, FileText } from 'lucide-react'
+import { Upload, Trash2, Plus, CheckCircle, AlertCircle, FileText, Download } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
+import * as XLSX from 'xlsx'
 
 interface MenuItem {
   id?: string
   name: string
   category: string
   price?: number
+  timing?: string
+  gm_name?: string
+  selected?: boolean
 }
 
 interface MenuFunction {
@@ -28,6 +32,8 @@ interface MenuData {
   quantity: number
   approved: boolean
   created_at?: string
+  timing?: string
+  gm_name?: string
 }
 
 export default function MenuManagement() {
@@ -42,8 +48,12 @@ export default function MenuManagement() {
   const [menuCategory, setMenuCategory] = useState('Silver')
   const [menuItems, setMenuItems] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
+  const [menuTiming, setMenuTiming] = useState<string>('')
+  const [gmName, setGmName] = useState<string>('')
+  const [selectedItems, setSelectedItems] = useState<{ [menuId: string]: Set<number> }>({})
 
   const categories = ['Silver', 'Gold', 'Platinum', 'Diamond']
+  const timings = ['8:00 AM', '12:00 PM', '2:00 PM', '4:00 PM', '6:00 PM', '8:00 PM', '10:00 PM']
 
   useEffect(() => {
     if (!user) {
@@ -56,13 +66,11 @@ export default function MenuManagement() {
   const loadData = async () => {
     setLoading(true)
     try {
-      // Load functions
       const { data: functionsData } = await supabase
         .from('functions')
         .select('*')
         .order('id')
 
-      // Load menus
       const { data: menusData } = await supabase
         .from('menus')
         .select('*')
@@ -70,12 +78,57 @@ export default function MenuManagement() {
 
       setFunctions(functionsData || [])
       setMenus(menusData || [])
+      setSelectedItems({})
     } catch (error) {
       console.error('Error loading data:', error)
       toast.error('Failed to load menu data')
     } finally {
       setLoading(false)
     }
+  }
+
+  const checkDuplicates = (itemName: string, category: string): boolean => {
+    return menus
+      .filter(m => m.function_id === selectedFunction && m.category === category)
+      .some(m => m.items?.some(item => item.name.toLowerCase() === itemName.toLowerCase()))
+  }
+
+  const toggleItemSelection = (menuId: string, itemIndex: number) => {
+    setSelectedItems(prev => {
+      const current = prev[menuId] || new Set<number>()
+      const updated = new Set(current)
+      if (updated.has(itemIndex)) {
+        updated.delete(itemIndex)
+      } else {
+        updated.add(itemIndex)
+      }
+      return { ...prev, [menuId]: updated }
+    })
+  }
+
+  const getSelectedCount = (menuId: string, total: number): number => {
+    return selectedItems[menuId]?.size || 0
+  }
+
+  const exportToExcel = () => {
+    const functionMenus = menus.filter(m => m.function_id === selectedFunction)
+    const exportData = functionMenus.flatMap(menu =>
+      menu.items?.map((item, idx) => ({
+        Function: currentFunction?.name || `Function ${selectedFunction}`,
+        Category: menu.category,
+        'Item Name': item.name,
+        Timing: menu.timing || '',
+        'General Manager': menu.gm_name || '',
+        Selected: selectedItems[menu.id!]?.has(idx) ? 'Yes' : 'No',
+        'Selected Count': `${getSelectedCount(menu.id!, menu.items?.length || 0)} / ${menu.items?.length || 0}`
+      })) || []
+    )
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Menu Items')
+    XLSX.writeFile(wb, `menu-${selectedFunction}-${new Date().toISOString().split('T')[0]}.xlsx`)
+    toast.success('Menu exported to Excel')
   }
 
   const handleAddMenu = async () => {
@@ -86,10 +139,21 @@ export default function MenuManagement() {
 
     try {
       setUploading(true)
-      const items = menuItems.split('\n').filter(item => item.trim()).map(item => ({
+      const itemNames = menuItems.split('\n').filter(item => item.trim())
+
+      // Check for duplicates
+      const duplicates = itemNames.filter(name => checkDuplicates(name, menuCategory))
+      if (duplicates.length > 0) {
+        toast.error(`⚠️ Duplicate items found: ${duplicates.join(', ')}`)
+        return
+      }
+
+      const items = itemNames.map(item => ({
         name: item.trim(),
         category: menuCategory,
-        price: 0
+        price: 0,
+        timing: menuTiming,
+        gm_name: gmName
       }))
 
       const newMenu = {
@@ -97,7 +161,9 @@ export default function MenuManagement() {
         category: menuCategory,
         items: items,
         quantity: quantity,
-        approved: false
+        approved: false,
+        timing: menuTiming,
+        gm_name: gmName
       }
 
       const { error } = await supabase
@@ -109,6 +175,8 @@ export default function MenuManagement() {
       toast.success(`Added ${items.length} items to ${menuCategory} menu`)
       setMenuItems('')
       setQuantity(1)
+      setMenuTiming('')
+      setGmName('')
       setShowAddMenu(false)
       loadData()
     } catch (error) {
@@ -200,34 +268,90 @@ export default function MenuManagement() {
       </div>
 
       {/* Add Menu Button */}
-      <button
-        onClick={() => setShowAddMenu(!showAddMenu)}
-        className="bg-rose-gold hover:bg-rose-gold/90 text-white font-medium py-3 px-6 rounded-lg flex items-center gap-2 transition"
-      >
-        <Plus className="w-5 h-5" />
-        Add Menu Items
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={() => setShowAddMenu(!showAddMenu)}
+          className="bg-rose-gold hover:bg-rose-gold/90 text-white font-medium py-3 px-6 rounded-lg flex items-center gap-2 transition"
+        >
+          <Plus className="w-5 h-5" />
+          Add Menu Items
+        </button>
+        <button
+          onClick={exportToExcel}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg flex items-center gap-2 transition"
+        >
+          <Download className="w-5 h-5" />
+          Export to Excel
+        </button>
+      </div>
 
       {/* Add Menu Form */}
       {showAddMenu && (
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 space-y-4">
           <h3 className="text-lg font-semibold text-gray-800">Add Menu Items</h3>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
-            </label>
-            <select
-              value={menuCategory}
-              onChange={(e) => setMenuCategory(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold outline-none"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Category
+              </label>
+              <select
+                value={menuCategory}
+                onChange={(e) => setMenuCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold outline-none"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Timing
+              </label>
+              <select
+                value={menuTiming}
+                onChange={(e) => setMenuTiming(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold outline-none"
+              >
+                <option value="">Select Timing</option>
+                {timings.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                General Manager
+              </label>
+              <input
+                type="text"
+                value={gmName}
+                onChange={(e) => setGmName(e.target.value)}
+                placeholder="GM Name"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Items to Select
+              </label>
+              <input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                min={1}
+                max={20}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold outline-none"
+              />
+            </div>
           </div>
 
           <div>
@@ -240,20 +364,6 @@ export default function MenuManagement() {
               placeholder="e.g.&#10;Paneer Tikka&#10;Tandoori Chicken&#10;Vegetable Biryani"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold outline-none"
               rows={6}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Number of Items to Select
-            </label>
-            <input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-              min={1}
-              max={20}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-gold outline-none"
             />
           </div>
 
@@ -332,17 +442,39 @@ export default function MenuManagement() {
                   </div>
                 </div>
 
-                {/* Menu Items List */}
+                {/* Menu Items List with Selection */}
                 {menu.items && menu.items.length > 0 && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Items:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {menu.items.map((item, idx) => (
-                        <div key={idx} className="text-sm text-gray-700 flex items-center gap-2">
-                          <span className="w-2 h-2 bg-rose-gold rounded-full"></span>
-                          {item.name}
-                        </div>
-                      ))}
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-700">Items ({getSelectedCount(menu.id!, menu.items.length)} of {menu.items.length} selected):</p>
+                      {menu.timing && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">{menu.timing}</span>}
+                      {menu.gm_name && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">GM: {menu.gm_name}</span>}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {menu.items.map((item, idx) => {
+                        const isSelected = selectedItems[menu.id!]?.has(idx)
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => toggleItemSelection(menu.id!, idx)}
+                            className={`p-3 rounded-lg border-2 cursor-pointer transition ${
+                              isSelected
+                                ? 'bg-green-100 border-green-500 text-green-900'
+                                : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleItemSelection(menu.id!, idx)}
+                                className="w-4 h-4 cursor-pointer"
+                              />
+                              <span className="text-sm font-medium flex-1">{item.name}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )}

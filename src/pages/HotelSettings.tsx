@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { Edit2, Save, X } from 'lucide-react'
+import { useGuestStore } from '../store/guestStore'
+import { Edit2, Save, X, MapPin, Users, AutomatedAnnouncement } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface HotelSetting {
   id: string
@@ -11,25 +13,75 @@ interface HotelSetting {
   default_checkout: string
   rate_per_room_night: number
   contracted_rooms: number
+  rooms_assigned?: number
+  location?: string
 }
 
 export default function HotelSettings() {
+  const guests = useGuestStore((state) => state.guests)
   const [hotels, setHotels] = useState<HotelSetting[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editData, setEditData] = useState<Partial<HotelSetting>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [autoAssigning, setAutoAssigning] = useState(false)
 
   useEffect(() => {
-    const loadHotels = async () => {
-      const { data, error } = await supabase.from('hotel_settings').select('*')
-      if (data) setHotels(data as HotelSetting[])
-      if (error) console.error('Error loading hotels:', error)
-      setLoading(false)
-    }
-
     loadHotels()
   }, [])
+
+  const loadHotels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hotel_settings')
+        .select('*')
+        .order('name')
+      if (error) throw error
+      setHotels((data as HotelSetting[]) || [])
+    } catch (error) {
+      console.error('Error loading hotels:', error)
+      toast.error('Failed to load hotels')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAutoAssign = async () => {
+    if (hotels.length === 0) {
+      toast.error('No hotels configured')
+      return
+    }
+
+    setAutoAssigning(true)
+    try {
+      const guestsNeedingRooms = guests.filter(g => g.room_needed && g.rsvp_status === 'Confirmed')
+
+      if (guestsNeedingRooms.length === 0) {
+        toast.info('No guests need room assignment')
+        setAutoAssigning(false)
+        return
+      }
+
+      // Round-robin assignment
+      let hotelIndex = 0
+      for (const guest of guestsNeedingRooms) {
+        const hotel = hotels[hotelIndex % hotels.length]
+        await supabase
+          .from('guests')
+          .update({ hotel_id: hotel.id })
+          .eq('id', guest.id)
+        hotelIndex++
+      }
+
+      await loadHotels()
+      toast.success(`✅ Auto-assigned ${guestsNeedingRooms.length} guests to hotels`)
+    } catch (error) {
+      console.error('Auto-assign error:', error)
+      toast.error('Failed to auto-assign guests')
+    } finally {
+      setAutoAssigning(false)
+    }
+  }
 
   const handleEdit = (hotel: HotelSetting) => {
     setEditingId(hotel.id)
@@ -66,35 +118,58 @@ export default function HotelSettings() {
 
   const totalContractedRooms = hotels.reduce((sum, h) => sum + h.contracted_rooms, 0)
   const totalContractValue = hotels.reduce((sum, h) => sum + h.contracted_rooms * h.rate_per_room_night * 2, 0) // 2 nights
+  const guestsNeedingRooms = guests.filter(g => g.room_needed && g.rsvp_status === 'Confirmed')
+  const roomsNeeded = Math.ceil(guestsNeedingRooms.reduce((sum, g) => sum + g.pax_total, 0) / 2) // 2 per room
 
   if (loading) return <div className="p-6">Loading...</div>
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Hotel Settings</h1>
-        <p className="text-gray-600 text-sm mt-1">Configure all hotel properties and rates</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <MapPin className="w-8 h-8 text-rose-gold" />
+            Hotel Settings
+          </h1>
+          <p className="text-gray-600 text-sm mt-2">Configure all hotel properties and manage room assignments</p>
+        </div>
+        <button
+          onClick={handleAutoAssign}
+          disabled={autoAssigning || hotels.length === 0}
+          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 flex items-center gap-2"
+        >
+          <AutomatedAnnouncement className="w-5 h-5" />
+          {autoAssigning ? 'Assigning...' : 'Auto-Assign Guests'}
+        </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <p className="text-gray-600 text-sm font-medium">Total Hotels</p>
+          <p className="text-gray-600 text-sm font-medium">Hotels</p>
           <p className="text-3xl font-bold text-gray-800 mt-2">{hotels.length}</p>
         </div>
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <p className="text-gray-600 text-sm font-medium">Total Contracted Rooms</p>
+          <p className="text-gray-600 text-sm font-medium">Contracted</p>
           <p className="text-3xl font-bold text-blue-700 mt-2">{totalContractedRooms}</p>
+          <p className="text-xs text-gray-500 mt-1">rooms</p>
         </div>
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <p className="text-gray-600 text-sm font-medium">Total Contract Value (2 nights)</p>
-          <p className="text-2xl font-bold text-green-700 mt-2">₹{totalContractValue.toLocaleString()}</p>
+          <p className="text-gray-600 text-sm font-medium">Needed</p>
+          <p className="text-3xl font-bold text-orange-700 mt-2">{roomsNeeded}</p>
+          <p className="text-xs text-gray-500 mt-1">{guestsNeedingRooms.length} guests</p>
         </div>
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <p className="text-gray-600 text-sm font-medium">Avg Rate/Night</p>
+          <p className="text-gray-600 text-sm font-medium">Contract Value</p>
+          <p className="text-2xl font-bold text-green-700 mt-2">₹{(totalContractValue / 100000).toFixed(1)}L</p>
+          <p className="text-xs text-gray-500 mt-1">2 nights</p>
+        </div>
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+          <p className="text-gray-600 text-sm font-medium">Avg Rate</p>
           <p className="text-3xl font-bold text-purple-700 mt-2">
-            ₹{hotels.length > 0 ? Math.round(hotels.reduce((sum, h) => sum + h.rate_per_room_night, 0) / hotels.length) : 0}
+            ₹{hotels.length > 0 ? Math.round(hotels.reduce((sum, h) => sum + h.rate_per_room_night, 0) / hotels.length).toLocaleString() : 0}
           </p>
+          <p className="text-xs text-gray-500 mt-1">per night</p>
         </div>
       </div>
 

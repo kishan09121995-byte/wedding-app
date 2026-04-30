@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useGuestStore } from '../store/guestStore'
 import { supabase } from '../lib/supabase'
-import { Save, RotateCcw } from 'lucide-react'
+import { Save, Bed, MapPin, Users, Download } from 'lucide-react'
 import { toast } from 'sonner'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 interface HotelSetting {
   id: string
@@ -94,6 +96,28 @@ export default function RoomBooking() {
     if (guestsRes.data) setGuestRooms(guestsRes.data as GuestRoom[])
   }
 
+  const handleExportPDF = async () => {
+    const element = document.getElementById('room-booking-table')
+    if (!element) {
+      toast.error('Nothing to export')
+      return
+    }
+
+    try {
+      const canvas = await html2canvas(element)
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+      const imgData = canvas.toDataURL('image/png')
+      const imgWidth = 297 - 20
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight)
+      pdf.save('room-booking.pdf')
+      toast.success('PDF exported!')
+    } catch (error) {
+      console.error('PDF export error:', error)
+      toast.error('Failed to export PDF')
+    }
+  }
+
   if (loading) return <div className="p-6">Loading...</div>
 
   const hotelGrouped = new Map<string, GuestRoom[]>()
@@ -119,28 +143,39 @@ export default function RoomBooking() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Room Booking</h1>
-          <p className="text-gray-600 text-sm mt-1">Manage guest room assignments and dates</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleReset}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Reset
-          </button>
-          <button
-            onClick={handleSaveAll}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save All'}
-          </button>
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+              <Bed className="w-8 h-8 text-rose-gold" />
+              Room Booking & Assignments
+            </h1>
+            <p className="text-gray-600 text-sm mt-2">Manage guest room assignments and check-in/out dates</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleExportPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export PDF
+            </button>
+            <button
+              onClick={handleReset}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+            >
+              Reset
+            </button>
+            <button
+              onClick={handleSaveAll}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Saving...' : 'Save All'}
+            </button>
+          </div>
         </div>
       </div>
 

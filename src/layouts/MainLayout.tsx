@@ -47,27 +47,29 @@ import GuestArrivals from '../pages/GuestArrivals'
 import EventDetails from '../pages/EventDetails'
 import InternalChat from '../pages/InternalChat'
 import Notifications from '../pages/Notifications'
+import TeamChat from '../pages/TeamChat'
+import ArrivalsSheet from '../pages/ArrivalsSheet'
+import DecorGallery from '../pages/DecorGallery'
 
-type Page = 'dashboard' | 'rsvp' | 'plate-count' | 'hotel-settings' | 'room-booking' | 'hotel-billing' | 'budget' | 'timeline' | 'photos' | 'social' | 'vendors' | 'menu' | 'admin' | 'users' | 'assignments' | 'arrivals' | 'event-details' | 'chat' | 'notifications'
+type Page = 'dashboard' | 'rsvp' | 'plate-count' | 'hotel-settings' | 'room-booking' | 'hotel-billing' | 'budget' | 'timeline' | 'photos' | 'social' | 'vendors' | 'menu' | 'admin' | 'users' | 'assignments' | 'arrivals' | 'event-details' | 'chat' | 'notifications' | 'team-chat' | 'arrivals-sheet' | 'decor-gallery'
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'vendors', label: 'Vendors', icon: Store, section: 'main' },
   { id: 'rsvp', label: 'Master RSVP', icon: Users },
   { id: 'plate-count', label: 'Plate Count', icon: UtensilsCrossed },
   { id: 'menu', label: 'Menu Management', icon: FileText },
   { id: 'hotel-settings', label: 'Hotel Settings', icon: Building2 },
   { id: 'room-booking', label: 'Room Booking', icon: Hotel },
-  { id: 'hotel-billing', label: 'Hotel Billing', icon: DollarSign },
-  { id: 'budget', label: 'Budget', icon: DollarSign },
-  { id: 'assignments', label: 'Assignments', icon: CheckSquare },
-  { id: 'arrivals', label: 'Guest Arrivals', icon: MapPin },
-  { id: 'event-details', label: 'Décor & Photos', icon: Palette },
-  { id: 'chat', label: 'Team Chat', icon: MessageSquare },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'hotel-billing', label: 'Hotel Billing', icon: DollarSign, restricted: true },
+  { id: 'budget', label: 'Budget', icon: DollarSign, restricted: true },
+  { id: 'assignments', label: 'Task Assignments', icon: CheckSquare },
+  { id: 'team-chat', label: 'Team Chat', icon: MessageSquare },
+  { id: 'arrivals-sheet', label: 'Guest Arrivals', icon: MapPin },
   { id: 'timeline', label: 'Timeline', icon: Calendar },
+  { id: 'decor-gallery', label: 'Décor Gallery', icon: Palette },
   { id: 'photos', label: 'Photo Gallery', icon: Image },
   { id: 'social', label: 'Social Hub', icon: Share2 },
-  { id: 'vendors', label: 'Vendors', icon: Store },
   { id: 'users', label: 'Users', icon: UserCog },
   { id: 'admin', label: 'Admin', icon: Shield },
 ]
@@ -83,7 +85,21 @@ export default function MainLayout() {
     setUser(null)
   }
 
+  const canViewBilling = ['admin', 'bride_admin', 'groom_admin', 'vendor_admin', 'coordinator'].includes(role || '')
+
   const renderPage = () => {
+    // Check access for restricted pages
+    if ((currentPage === 'hotel-billing' || currentPage === 'budget') && !canViewBilling) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-800 mb-2">Access Denied</p>
+            <p className="text-gray-600">Only admins and coordinators can view billing information</p>
+          </div>
+        </div>
+      )
+    }
+
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />
@@ -105,16 +121,22 @@ export default function MainLayout() {
         return <Assignments />
       case 'arrivals':
         return <GuestArrivals />
+      case 'arrivals-sheet':
+        return <ArrivalsSheet />
       case 'event-details':
         return <EventDetails />
       case 'chat':
         return <InternalChat />
+      case 'team-chat':
+        return <TeamChat />
       case 'notifications':
         return <Notifications />
       case 'timeline':
         return <Timeline />
       case 'photos':
         return <PhotoGallery />
+      case 'decor-gallery':
+        return <DecorGallery />
       case 'social':
         return <SocialHub />
       case 'vendors':
@@ -147,23 +169,28 @@ export default function MainLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-4">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = currentPage === item.id
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setCurrentPage(item.id as Page)
-                  if (window.innerWidth < 768) setSidebarOpen(false)
-                }}
-                className={`sidebar-menu-item ${isActive ? 'active' : ''}`}
-              >
-                <Icon className="menu-icon" />
-                <span className="menu-label">{item.label}</span>
-              </button>
-            )
-          })}
+          {navItems
+            .filter(item => {
+              if (!item.restricted) return true
+              return canViewBilling
+            })
+            .map((item) => {
+              const Icon = item.icon
+              const isActive = currentPage === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setCurrentPage(item.id as Page)
+                    if (window.innerWidth < 768) setSidebarOpen(false)
+                  }}
+                  className={`sidebar-menu-item ${isActive ? 'active' : ''}`}
+                >
+                  <Icon className="menu-icon" />
+                  <span className="menu-label">{item.label}</span>
+                </button>
+              )
+            })}
         </nav>
 
         {/* Footer */}
