@@ -7,6 +7,8 @@ import Auth from './pages/Auth'
 import MainLayout from './layouts/MainLayout'
 import RSVPPortal from './pages/RSVPPortal'
 import PhotoPortal from './pages/PhotoPortal'
+import RegisterBride from './pages/RegisterBride'
+import RegisterGroom from './pages/RegisterGroom'
 import QRPhotoRegistration from './pages/QRPhotoRegistration'
 import PasswordReset from './pages/PasswordReset'
 import AdminPanel from './pages/AdminPanel'
@@ -112,6 +114,8 @@ function App() {
       <Routes>
         <Route path="/rsvp/:token" element={<RSVPPortal />} />
         <Route path="/photo-portal" element={<PhotoPortal />} />
+        <Route path="/register/bride" element={<RegisterBride />} />
+        <Route path="/register/groom" element={<RegisterGroom />} />
         <Route path="/qr-photos" element={<QRPhotoRegistration />} />
         <Route path="/reset-password" element={<PasswordReset />} />
         <Route path="/setup" element={<SetupWizard />} />

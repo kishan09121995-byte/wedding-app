@@ -8,6 +8,8 @@ import Auth from './pages/Auth';
 import MainLayout from './layouts/MainLayout';
 import RSVPPortal from './pages/RSVPPortal';
 import PhotoPortal from './pages/PhotoPortal';
+import RegisterBride from './pages/RegisterBride';
+import RegisterGroom from './pages/RegisterGroom';
 import QRPhotoRegistration from './pages/QRPhotoRegistration';
 import PasswordReset from './pages/PasswordReset';
 import AdminPanel from './pages/AdminPanel';
@@ -83,6 +85,6 @@ function AppContent() {
     return _jsx(MainLayout, {});
 }
 function App() {
-    return (_jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/rsvp/:token", element: _jsx(RSVPPortal, {}) }), _jsx(Route, { path: "/photo-portal", element: _jsx(PhotoPortal, {}) }), _jsx(Route, { path: "/qr-photos", element: _jsx(QRPhotoRegistration, {}) }), _jsx(Route, { path: "/reset-password", element: _jsx(PasswordReset, {}) }), _jsx(Route, { path: "/setup", element: _jsx(SetupWizard, {}) }), _jsx(Route, { path: "/setup-rsvp", element: _jsx(SetupRSVP, {}) }), _jsx(Route, { path: "/admin", element: _jsx(AdminPanel, {}) }), _jsx(Route, { path: "/*", element: _jsx(AppContent, {}) })] }) }));
+    return (_jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/rsvp/:token", element: _jsx(RSVPPortal, {}) }), _jsx(Route, { path: "/photo-portal", element: _jsx(PhotoPortal, {}) }), _jsx(Route, { path: "/register/bride", element: _jsx(RegisterBride, {}) }), _jsx(Route, { path: "/register/groom", element: _jsx(RegisterGroom, {}) }), _jsx(Route, { path: "/qr-photos", element: _jsx(QRPhotoRegistration, {}) }), _jsx(Route, { path: "/reset-password", element: _jsx(PasswordReset, {}) }), _jsx(Route, { path: "/setup", element: _jsx(SetupWizard, {}) }), _jsx(Route, { path: "/setup-rsvp", element: _jsx(SetupRSVP, {}) }), _jsx(Route, { path: "/admin", element: _jsx(AdminPanel, {}) }), _jsx(Route, { path: "/*", element: _jsx(AppContent, {}) })] }) }));
 }
 export default App;
