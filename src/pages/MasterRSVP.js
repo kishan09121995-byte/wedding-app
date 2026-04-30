@@ -13,7 +13,7 @@ export default function MasterRSVP() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingGuest, setEditingGuest] = useState();
     const [loading, setLoading] = useState(false);
-    const canAddGuest = role === 'bride_admin' || role === 'vendor_admin';
+    const canAddGuest = role === 'bride_admin' || role === 'groom_admin' || role === 'vendor_admin';
     const canEditGuest = (guest) => {
         if (role === 'vendor_admin')
             return true;
@@ -109,7 +109,7 @@ export default function MasterRSVP() {
     };
     const handleAddGuest = () => {
         if (!canAddGuest) {
-            toast.error('Only Bride admin or Vendor admin can add guests');
+            toast.error('Only admins can add guests');
             return;
         }
         setEditingGuest(undefined);
