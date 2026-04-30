@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useGuestStore } from '../store/guestStore'
 import { supabase } from '../lib/supabase'
-import { Upload, Download, Trash2, Share2, Check, X } from 'lucide-react'
+import { Download, Trash2, Image, RefreshCw, X } from 'lucide-react'
 import { toast } from 'sonner'
-import QRCode from 'qrcode.react'
 
 interface Photo {
   id: string
@@ -15,9 +14,8 @@ interface Photo {
 export default function PhotoGallery() {
   const guests = useGuestStore((state) => state.guests)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [uploading, setUploading] = useState(false)
+  const [scanning, setScanning] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [selectedGuests, setSelectedGuests] = useState<{ [key: string]: string | null }>({})
   const [filterGuest, setFilterGuest] = useState<string | null>(null)
 
   useEffect(() => {
@@ -32,44 +30,29 @@ export default function PhotoGallery() {
     loadPhotos()
   }, [])
 
-  const handleFileUpload = async (files: FileList | null) => {
-    if (!files) return
-    setUploading(true)
+  const handleScanGoogleDrive = async () => {
+    setScanning(true)
+    try {
+      const BACKEND_URL = 'https://wedding-gallery-backend-with-ai-photo-matching-production.up.railway.app'
+      const res = await fetch(`${BACKEND_URL}/api/scan-drive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
 
-    const BACKEND_URL = 'https://wedding-gallery-backend-with-ai-photo-matching-production.up.railway.app'
+      if (!res.ok) throw new Error('Failed to scan Google Drive')
 
-    for (const file of Array.from(files)) {
-      const formData = new FormData()
-      formData.append('photo', file)
+      const data = await res.json()
+      toast.success(`✅ Scanned and indexed ${data.processed || 0} photos from Google Drive`)
 
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/upload-photo`, {
-          method: 'POST',
-          body: formData,
-        })
-
-        const data = await res.json()
-
-        if (data.downloadUrl) {
-          const { data: photoData, error } = await supabase
-            .from('photos')
-            .insert([{ url: data.downloadUrl, guest_tags: [] }])
-            .select()
-
-          if (error) {
-            toast.error(`Failed to save ${file.name}`)
-          } else if (photoData) {
-            setPhotos((prev) => [photoData[0] as Photo, ...prev])
-            toast.success(`${file.name} uploaded`)
-          }
-        }
-      } catch (error) {
-        console.error('Upload error:', error)
-        toast.error(`Failed to upload ${file.name}`)
-      }
+      // Reload photos after scan
+      const { data: photoData } = await supabase.from('photos').select('*').order('uploaded_at', { ascending: false })
+      if (photoData) setPhotos(photoData as Photo[])
+    } catch (error) {
+      console.error('Scan error:', error)
+      toast.error('Failed to scan Google Drive. Make sure backend is deployed.')
+    } finally {
+      setScanning(false)
     }
-
-    setUploading(false)
   }
 
   const handleTagPhoto = async (photoId: string, guestId: string | null) => {
@@ -121,52 +104,32 @@ export default function PhotoGallery() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Photo Gallery</h1>
-          <p className="text-gray-600 text-sm mt-1">Upload and tag wedding photos with guests</p>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <Image className="w-8 h-8 text-rose-gold" />
+            Photo Gallery
+          </h1>
+          <p className="text-gray-600 text-sm mt-2">Wedding photos from Google Drive with guest tagging</p>
         </div>
+        <button
+          onClick={handleScanGoogleDrive}
+          disabled={scanning}
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition"
+        >
+          <RefreshCw className={`w-5 h-5 ${scanning ? 'animate-spin' : ''}`} />
+          {scanning ? 'Scanning Google Drive...' : 'Sync Google Drive Photos'}
+        </button>
       </div>
 
-      {/* QR Code Registration Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Upload Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Photos</h2>
-          <label className="block">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => handleFileUpload(e.target.files)}
-                disabled={uploading}
-                className="hidden"
-              />
-              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-700 font-medium text-sm">{uploading ? 'Uploading...' : 'Click or drag photos'}</p>
-              <p className="text-gray-500 text-xs mt-1">JPG, PNG up to 10MB</p>
-            </div>
-          </label>
-          <p className="text-xs text-gray-500 mt-4">Total photos: {photos.length}</p>
-        </div>
-
-        {/* QR Code Registration Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Guest Registration</h2>
-          <div className="bg-gray-50 rounded-lg p-6 text-center">
-            <p className="text-xs text-gray-600 mb-3">Scan to tag yourself in photos</p>
-            <div className="flex justify-center">
-              <QRCode
-                value={`${window.location.origin}/gallery`}
-                size={200}
-                level="H"
-                includeMargin={true}
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-4">Guests can scan to be tagged in photos</p>
-          </div>
-        </div>
+      {/* Photos Status */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-sm text-blue-800">
+          📸 <strong>Total Photos:</strong> {photos.length} photos indexed from Google Drive
+        </p>
+        <p className="text-xs text-blue-600 mt-2">
+          Click "Sync Google Drive Photos" to scan and index wedding photos from your Google Drive folder.
+        </p>
       </div>
 
       {/* Filter Section */}
