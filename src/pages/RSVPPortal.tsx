@@ -31,7 +31,7 @@ export default function RSVPPortal() {
       const { data, error } = await supabase
         .from('guests')
         .select('id,name,city,pax_total,side,rsvp_status')
-        .eq('id', token)
+        .eq('qr_token', token)
         .single()
 
       if (error || !data) {

@@ -10,6 +10,7 @@ import QRPhotoRegistration from './pages/QRPhotoRegistration'
 import PasswordReset from './pages/PasswordReset'
 import AdminPanel from './pages/AdminPanel'
 import SetupWizard from './pages/SetupWizard'
+import SetupRSVP from './pages/SetupRSVP'
 import { Loader } from 'lucide-react'
 
 function AppContent() {
@@ -112,6 +113,7 @@ function App() {
         <Route path="/qr-photos" element={<QRPhotoRegistration />} />
         <Route path="/reset-password" element={<PasswordReset />} />
         <Route path="/setup" element={<SetupWizard />} />
+        <Route path="/setup-rsvp" element={<SetupRSVP />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/*" element={<AppContent />} />
       </Routes>

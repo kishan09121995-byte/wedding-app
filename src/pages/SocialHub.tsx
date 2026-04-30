@@ -77,7 +77,7 @@ export default function SocialHub() {
   }
 
   const currentGuest = guests.find((g) => g.id === selectedGuest)
-  const rsvpUrl = `${window.location.origin}/rsvp/${currentGuest?.id}`
+  const rsvpUrl = `${window.location.origin}/rsvp/${currentGuest?.qr_token || currentGuest?.id}`
 
   const generateWhatsAppMessage = () => {
     if (!currentGuest) return ''

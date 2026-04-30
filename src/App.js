@@ -11,6 +11,7 @@ import QRPhotoRegistration from './pages/QRPhotoRegistration';
 import PasswordReset from './pages/PasswordReset';
 import AdminPanel from './pages/AdminPanel';
 import SetupWizard from './pages/SetupWizard';
+import SetupRSVP from './pages/SetupRSVP';
 import { Loader } from 'lucide-react';
 function AppContent() {
     const { user, loading, setUser, setLoading } = useAuthStore();
@@ -81,6 +82,6 @@ function AppContent() {
     return _jsx(MainLayout, {});
 }
 function App() {
-    return (_jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/rsvp/:token", element: _jsx(RSVPPortal, {}) }), _jsx(Route, { path: "/qr-photos", element: _jsx(QRPhotoRegistration, {}) }), _jsx(Route, { path: "/reset-password", element: _jsx(PasswordReset, {}) }), _jsx(Route, { path: "/setup", element: _jsx(SetupWizard, {}) }), _jsx(Route, { path: "/admin", element: _jsx(AdminPanel, {}) }), _jsx(Route, { path: "/*", element: _jsx(AppContent, {}) })] }) }));
+    return (_jsx(BrowserRouter, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/rsvp/:token", element: _jsx(RSVPPortal, {}) }), _jsx(Route, { path: "/qr-photos", element: _jsx(QRPhotoRegistration, {}) }), _jsx(Route, { path: "/reset-password", element: _jsx(PasswordReset, {}) }), _jsx(Route, { path: "/setup", element: _jsx(SetupWizard, {}) }), _jsx(Route, { path: "/setup-rsvp", element: _jsx(SetupRSVP, {}) }), _jsx(Route, { path: "/admin", element: _jsx(AdminPanel, {}) }), _jsx(Route, { path: "/*", element: _jsx(AppContent, {}) })] }) }));
 }
 export default App;
