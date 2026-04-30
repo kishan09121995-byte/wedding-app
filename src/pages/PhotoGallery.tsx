@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useGuestStore } from '../store/guestStore'
 import { supabase } from '../lib/supabase'
-import { Download, Trash2, Image, RefreshCw, X } from 'lucide-react'
+import { Download, Trash2, Image, RefreshCw, X, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Photo {
@@ -75,12 +75,6 @@ export default function PhotoGallery() {
         prev.map((p) => (p.id === photoId ? { ...p, guest_tags: newTags } : p))
       )
       toast.success('Guest tagged')
-    }
-
-    setSelectedGuests((prev) => ({
-      ...prev,
-      [photoId]: null,
-    }))
   }
 
   const handleDeletePhoto = async (photoId: string) => {
@@ -215,7 +209,7 @@ export default function PhotoGallery() {
 
                   {/* Tag Guest Dropdown */}
                   <select
-                    value={selectedGuests[photo.id] || ''}
+                    defaultValue=""
                     onChange={(e) => {
                       const guestId = e.target.value
                       if (guestId) {
