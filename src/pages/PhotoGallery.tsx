@@ -75,6 +75,7 @@ export default function PhotoGallery() {
         prev.map((p) => (p.id === photoId ? { ...p, guest_tags: newTags } : p))
       )
       toast.success('Guest tagged')
+    }
   }
 
   const handleDeletePhoto = async (photoId: string) => {
