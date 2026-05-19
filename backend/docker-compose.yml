@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector
+  db:
+    image: ankane/pgvector:latest
+    container_name: wedding_pgvector
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: facedb
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d facedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wedding_network
+
+  # Redis for caching/messaging
+  redis:
+    image: redis:7-alpine
+    container_name: wedding_redis
+    ports:
+      - "6376:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wedding_network
+
+  # FastAPI backend
+  api:
+    build: .
+    container_name: wedding_api
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5433/facedb
+      REDIS_URL: redis://redis:6379
+      ENVIRONMENT: development
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000,http://localhost:8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - wedding_network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  wedding_network:
+    driver: bridge
